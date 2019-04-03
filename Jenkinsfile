@@ -60,5 +60,16 @@ node {
         stage('collect results') {
             junit keepLongStdio: true, testResults: 'tests/**/*-junit.xml'
         }
+
+        stage('Delete Scratch Org') {
+
+            // need to pull out assigned username
+            rc = sh returnStdout: true, script: "${toolbelt}/sfdx force:org:delete --targetusername ${SFDC_USERNAME} --noprompt"
+            printf rc
+            if (rc != 0) {
+                error 'scratch org cleanup failed'
+            }
+
+        }
     }
 }
