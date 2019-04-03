@@ -39,11 +39,6 @@ node {
             rc = sh returnStatus: true, script: "${toolbelt}/sfdx force:source:push --targetusername ${SFDC_USERNAME}"
             if (rc != 0) {
                 error 'push failed'
-                rc = sh returnStdout: true, script: "${toolbelt}/sfdx force:org:delete --targetusername ${SFDC_USERNAME} --noprompt"
-                printf rc
-                if (rc != 0) {
-                    error 'scratch org cleanup failed'
-                }
             }
             // assign permset
             // rc = sh returnStatus: true, script: "${toolbelt}/sfdx force:user:permset:assign --targetusername ${SFDC_USERNAME} --permsetname DreamHouse"
@@ -69,11 +64,11 @@ node {
         stage('Delete Scratch Org') {
 
             // need to pull out assigned username
-            rc = sh returnStdout: true, script: "${toolbelt}/sfdx force:org:delete --targetusername ${SFDC_USERNAME} --noprompt"
-            printf rc
-            if (rc != 0) {
-                error 'scratch org cleanup failed'
-            }
+            rmsg = sh returnStdout: true, script: "${toolbelt}/sfdx force:org:delete --targetusername ${SFDC_USERNAME} --noprompt --json"
+            printf rmsg
+            def jsonSlurper = new JsonSlurperClassic()
+            def robj = jsonSlurper.parseText(rmsg)
+            if (robj.status != 0) { error 'org creation failed: ' + robj.message }
 
         }
     }
